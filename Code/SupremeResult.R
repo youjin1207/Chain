@@ -1,7 +1,7 @@
 log.main.nine = function(pars, outcomes, treat){
   # This function prints out the log of clique factorizations before normalization.
   # Here cliques are base on our ad-hoc structural learning using log-linear model.
-  # We are assuming 19 undirected edges between the justices.
+  # We are assuming 19 undirected edges between the justices. 
   
   pars[1] +
     sum(outcomes[1:9]*pars[2:10]) + 
