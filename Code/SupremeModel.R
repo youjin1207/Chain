@@ -28,8 +28,6 @@ print(Adj.case1)
 #7 - 9
 #8 - 9
 
-
-
 ### Parameter learning ###
 data = read.csv("Data/longdata.csv", sep = ",", header = TRUE)
 data = as.data.frame(data)
@@ -53,7 +51,7 @@ names(input) = c("Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "case")
 # create a contingency table
 tab = xtabs(~ Y1 + Y2 + Y3 + Y4 + Y5 + Y6 + Y7 + Y8 + Y9 + case, data = input)
 main = loglm(~ Y1 + Y2 + Y3 + Y4 + Y5 + Y6 + Y7 + Y8 + Y9 + 
-               Y1:Y2 + Y1:Y3 + Y1:Y4 + Y1:Y5 +  Y1:Y7 + Y1:Y8 + Y1:Y9 +
+               Y1:Y2 + Y1:Y3 + Y1:Y4 + Y1:Y5 +Y1:Y7 + Y1:Y8 + Y1:Y9 +
                Y2:Y5 + Y2:Y6 + Y2:Y8 + Y2:Y9 +
                Y3:Y5 + Y3:Y6 + Y3:Y9 + 
                Y4:Y7 +
@@ -81,7 +79,7 @@ save(supreme_loglin_fit, file = "Data/supreme_loglin_fit1.RData")
 
 # bootstrap sample (nb = 1000)
 nb = 1000 # the number of bootstrap samples
-supreme_loglin_boot2 =
+supreme_loglin_boot1 = supreme_loglin_boot2 = supreme_loglin_boot8 = supreme_loglin_boot9 = list()
 for(ii in 1:nb){
   set.seed(ii)
   indbt = sample(1:nrow(Y), replace=TRUE)
@@ -127,4 +125,7 @@ save(supreme_loglin_boot1, file = "Data/supreme_loglin_boot1.RData")
 # save(supreme_loglin_boot9, file = "Data/supreme_loglin_boot9.RData")
 
 
-save(supreme_loglin_boot2, file = "supreme_loglin_boot2.RData")
+save(supreme_loglin_boot1, file = "supreme_loglin_boot1.RData")
+# save(supreme_loglin_boot2, file = "supreme_loglin_boot2.RData")
+# save(supreme_loglin_boot8, file = "supreme_loglin_boot8.RData")
+# save(supreme_loglin_boot9, file = "supreme_loglin_boot9.RData")
