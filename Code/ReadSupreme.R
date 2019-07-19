@@ -38,8 +38,9 @@ which(dat.all$caseId == "2004-080")
 
 
 # WHRehnquist : Chief Justice
-#"WHRehnquist" "JPStevens"   "SDOConnor"   "AScalia"     "AMKennedy"   "DHSouter"    "CThomas"    
-# "RBGinsburg"  "SGBreyer"   
+#1: "WHRehnquist" 2:"JPStevens"   3:"SDOConnor"   
+# 4:"AScalia"     5:"AMKennedy"   6:"DHSouter"    
+# 7:"CThomas"    8:"RBGinsburg"  9:"SGBreyer"   
 which(colnames(new.data) %in% tmp[which.max(case.count),])
 
 long.data = new.data[c(1:2, which(colnames(new.data) %in% tmp[which.max(case.count),]))]

@@ -1,273 +1,121 @@
-########################################
-######### auxiliary functions ##########
-log.main.nine = function(pars, outcomes, treat){
-  # This function prints out the log of clique factorizations before normalization.
-  # Here cliques are base on our ad-hoc structural learning using log-linear model.
-  # We are assuming 19 undirected edges between the justices. 
+max.time = 6000
+### auxiliary functions
+log.y = function(pars, Y, treat, cov, ind){
   
-  pars[1] +
-    sum(outcomes[1:9]*pars[2:10]) + 
-    pars[11]*outcomes[1]*outcomes[2] + pars[12]*outcomes[1]*outcomes[3] +
-    pars[13]*outcomes[1]*outcomes[4] + pars[14]*outcomes[1]*outcomes[5] +
-    pars[15]*outcomes[1]*outcomes[7] +
-    pars[16]*outcomes[1]*outcomes[8] + pars[17]*outcomes[1]*outcomes[9] +
-    pars[18]*outcomes[2]*outcomes[5] + pars[19]*outcomes[2]*outcomes[6] +
-    pars[20]*outcomes[2]*outcomes[8] +
-    pars[21]*outcomes[2]*outcomes[9] +
-    pars[22]*outcomes[3]*outcomes[5] + pars[23]*outcomes[3]*outcomes[6] +
-    pars[24]*outcomes[3]*outcomes[9] + pars[25]*outcomes[4]*outcomes[7] +
-    pars[26]*outcomes[6]*outcomes[8] +
-    pars[27]*outcomes[6]*outcomes[9] + 
-    pars[28]*outcomes[7]*outcomes[9] + pars[29]*outcomes[8]*outcomes[9] +
-    pars[30]*outcomes[1]*treat[1] + pars[31]*outcomes[2]*treat[2] + 
-    pars[32]*outcomes[3]*treat[3] + pars[33]*outcomes[4]*treat[4] +
-    pars[34]*outcomes[5]*treat[5] + pars[35]*outcomes[6]*treat[6] +
-    pars[36]*outcomes[7]*treat[7] + pars[37]*outcomes[8]*treat[8] + 
-    pars[38]*outcomes[9]*treat[9] 
+  if(ind == 1){
+    oneway = pars[1]; twoway = pars[c(10,11,12,13)]; Aeffect=pars[28]; # 3,4,5,7
+    main = oneway*Y[1] + sum(twoway*Y[1]*Y[c(3,4,5,7)]) + Aeffect*treat[1]*Y[1] + pars[37]*cov[1]*Y[1]
+  }else if(ind == 2){
+    oneway = pars[2]; twoway = pars[c(14,15,16)]; Aeffect = pars[29];  # 6,8,9
+    main = oneway*Y[2] + sum(twoway*Y[2]*Y[c(6,8,9)]) + Aeffect*treat[2]*Y[2] + pars[38]*cov[2]*Y[2]
+  }else if(ind == 3){
+    oneway = pars[3]; twoway = pars[c(10,17,18,19)]; Aeffect = pars[30];  # 1,5,7,9
+    main = oneway*Y[3] + sum(twoway*Y[3]*Y[c(1,5,7,9)]) + Aeffect*treat[3]*Y[3] + pars[39]*cov[3]*Y[3]
+  }else if(ind == 4){
+    oneway = pars[4]; twoway = pars[c(11,20,21)]; Aeffect = pars[31]; # 1,5,7
+    main = oneway*Y[4] + sum(twoway*Y[4]*Y[c(1,5,7)]) + Aeffect*treat[4]*Y[4] + pars[40]*cov[4]*Y[4]
+  }else if(ind == 5){
+    oneway = pars[5]; twoway = pars[c(12,17,20,22,23,24)]; Aeffect = pars[32];  # 1,3,4,6,7,8
+    main = oneway*Y[5] + sum(twoway*Y[5]*Y[c(1,3,4,6,7,8)]) + Aeffect*treat[5]*Y[5] + pars[41]*cov[5]*Y[5]
+  }else if(ind == 6){
+    oneway = pars[6]; twoway = pars[c(14,22,25,26)]; Aeffect = pars[33]; # 2,5,8,9
+    main = oneway*Y[6] + sum(twoway*Y[6]*Y[c(2,5,8,9)]) + Aeffect*treat[6]*Y[6] + pars[42]*cov[6]*Y[6]
+  }else if(ind == 7){
+    oneway = pars[7]; twoway = pars[c(13,18,21,23)]; Aeffect = pars[34]; # 1,3,4,5
+    main = oneway*Y[7] + sum(twoway*Y[7]*Y[c(1,3,4,5)]) + Aeffect*treat[7]*Y[7] + pars[43]*cov[7]*Y[7]
+  }else if(ind == 8){
+    oneway = pars[8]; twoway = pars[c(15,24,25,27)]; Aeffect = pars[35];  # 2,5,6,9
+    main = oneway*Y[8] + sum(twoway*Y[8]*Y[c(2,5,6,9)]) + Aeffect*treat[8]*Y[8] + pars[44]*cov[8]*Y[8]
+  }else if(ind == 9){
+    oneway = pars[9]; twoway = pars[c(16,29,26,27)]; Aeffect = pars[36]; # 2,3,6,8
+    main = oneway*Y[9] + sum(twoway*Y[9]*Y[c(2,3,6,8)]) + Aeffect*treat[9]*Y[9] + pars[45]*cov[9]*Y[9]
+  }
+  return(main)
 }
 
-print.prob.nine = function(pars, outcomes, treat){
-  # This function prints out the probability of outcomes (outcomes) given the treatment assignment (treat)
-  # using the 'pars' (coefficients of log-linear model) when we have nine subjects
-  # par = estimated parameter with a length of 38.
-  # outcomes = a set of Y
-  # treat = treatment received
-  main = log.main.nine(pars, outcomes, treat) 
+print.prob.y = function(pars, all.Y, treat, cov, ind){
+  y.list = all.Y; y.list[ind] = 1 
+  main = log.y(pars, y.list, treat, cov, ind) 
   ver = c(-1,1); Z.part = 0
-  for(i in 1:2){for(j in 1:2){for(l in 1:2){
-    for(q in 1:2){for(w in 1:2){for(e in 1:2){
-      for(a in 1:2){for(s in 1:2){for(d in 1:2){
-        Z.part = Z.part + exp(log.main.nine(pars, outcomes = c(ver[i], ver[j], ver[l], ver[q], ver[w], ver[e], ver[a], ver[s], ver[d]), 
-                                            treat))
-      }}}}}}}}}
+  for(j in 1:2){
+    y.part = all.Y; y.part[ind] = ver[j]
+    Z.part = Z.part + exp(log.y(pars, y.part, treat, cov, ind))
+  }
   prop = exp(main) /  Z.part 
   return(prop)
 }
 
-print.match.r = function(r, pars, treat){
-  # This function prints out all the probability of having 
-  # r-number of liberal-side votes
+print.gibbs.onecov.pars = function(pars, treatment, covariate){
   
-  if(r==0){
-    probs = print.prob.nine(pars, outcomes = rep(-1, 9), treat)
-    return(probs)
+  out = outcome = matrix(0, 9, max.time)
+  t = 1
+  out[,t] = rep(0.5,9)
+  outcome[,t] = 2*rbinom(9, 1, out[,t])-1 # random initial value
+  
+  for(t in 2:max.time){
+    
+    random.justice = sample(1:9, 1)
+    if(random.justice == 1){    
+      out[1,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 1)
+    }else if(random.justice == 2){
+      out[2,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 2)    
+    }else if(random.justice == 3){ 
+      out[3,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 3)     
+    }else if(random.justice == 4){
+      out[4,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 4)  
+    }else if(random.justice == 5){
+      out[5,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 5)                                          
+    }else if(random.justice == 6){
+      out[6,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 6)  
+    }else if(random.justice == 7){
+      out[7,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 7)   
+    }else if(random.justice == 8){
+      out[8,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 8)   
+    }else if(random.justice == 9){
+      out[9,t] = print.prob.y(pars, outcome[,t-1], treatment, covariate, ind = 9)
+    }
+    outcome[,t] = outcome[,(t-1)]                                        
+    outcome[random.justice,t] = 2*rbinom(1, 1, out[random.justice,t])- 1
   }
-  # r : the number of 1 (liberal) in outcomes (> 0 )
-  # consider all possible cases (9 choose r)
-  set1 = combinations(9, r, v = 1:9)
-  input.outcome = matrix(-1, nrow(set1), 9)
-  for(i in 1:nrow(set1)){
-    input.outcome[i,set1[i,]] = rep(1,r)
+  
+  Y.outcomes = t(outcome[,c(t-4999):t])  
+  
+  return(Y.outcomes) 
+}
+
+
+prob.set = list()
+for(ii in 1:500){
+  pars = onecov11_DAG_mle[[ii]][[1]]
+  inputX = onecov11_DAG[[ii]][[3]]
+  
+  treat.conservative.prob = treat.liberal.prob = treat.reh.prob = treat.thomas.prob = treat.stevens.prob = treat.scalia.prob = rep(0,4)
+  for(i in 1:nrow(inputX)){
+    treat.conservative = (print.gibbs.onecov.pars(pars, c(0,0,1,1,1,0,1,0,0), inputX[i,])+1)/2
+    treat.conservative.prob =  treat.conservative.prob + c(mean(rowSums(treat.conservative) == 9), mean(rowSums(treat.conservative) == 0),
+                                                           mean(rowSums(treat.conservative) == 5), mean(rowSums(treat.conservative) == 4)) / nrow(inputX)
+    
+    treat.liberal = (print.gibbs.onecov.pars(pars,  c(0,1,0,0,0,1,0,1,1), inputX[i,])+1)/2
+    treat.liberal.prob =  treat.liberal.prob + c(mean(rowSums(treat.liberal) == 9), mean(rowSums(treat.liberal) == 0),
+                                                 mean(rowSums(treat.liberal) == 5), mean(rowSums(treat.liberal) == 4)) / nrow(inputX)
+    
+    treat.reh = (print.gibbs.onecov.pars(pars, c(1,rep(0,8)), inputX[i,])+1)/2
+    treat.reh.prob =  treat.reh.prob + c(mean(rowSums(treat.reh) == 9), mean(rowSums(treat.reh) == 0),
+                                         mean(rowSums(treat.reh) == 5), mean(rowSums(treat.reh) == 4)) / nrow(inputX)
+    
+    treat.thomas = (print.gibbs.onecov.pars(pars, c(rep(0,6), 1, 0, 0), inputX[i,])+1)/2
+    treat.thomas.prob =  treat.thomas.prob + c(mean(rowSums(treat.thomas) == 9), mean(rowSums(treat.thomas) == 0),
+                                               mean(rowSums(treat.thomas) == 5), mean(rowSums(treat.thomas) == 4)) / nrow(inputX)
+    
+    treat.stevens = (print.gibbs.onecov.pars(pars, c(0,1,rep(0,7)), inputX[i,])+1)/2
+    treat.stevens.prob =  treat.stevens.prob + c(mean(rowSums(treat.stevens) == 9), mean(rowSums(treat.stevens) == 0),
+                                                 mean(rowSums(treat.stevens) == 5), mean(rowSums(treat.stevens) == 4)) / nrow(inputX)
+    
+    treat.scalia = (print.gibbs.onecov.pars(pars, c(0,0,0,1,0,0,0,0,0), inputX[i,])+1)/2
+    treat.scalia.prob =  treat.scalia.prob + c(mean(rowSums(treat.scalia) == 9), mean(rowSums(treat.scalia) == 0),
+                                               mean(rowSums(treat.scalia) == 5), mean(rowSums(treat.scalia) == 4)) / nrow(inputX)
   }
-  # sum over all possible scenario to have r liberal-side votes under 'treat'.
-  probs = 0
-  for(i in 1:nrow(input.outcome)){
-    probs = probs + print.prob.nine(pars, outcomes = input.outcome[i,], treat)
-  }
-  return(probs)
+
+  prob.set[[ii]] = list(treat.conservative.prob, treat.liberal.prob, treat.reh.prob, treat.thomas.prob,
+              treat.stevens.prob, treat.scalia.prob))
 }
-
-
-################################
-load("Data/supreme_loglin_Gibbs.RData")
-boot.sample = matrix(0, nrow = length(supreme_loglin_Gibbs), ncol = 38)
-for(i in 1:length(supreme_loglin_Gibbs)){
-  boot.sample[i,] = supreme_loglin_Gibbs[[i]]
-}
-
-######
-print.all1.treat.liberal = print.all1.treat.conserv = rep(0, length(supreme_loglin_Gibbs))
-print.all0.treat.liberal = print.all0.treat.conserv = rep(0, length(supreme_loglin_Gibbs))
-print.five.treat.liberal = print.five.treat.conserv = rep(0, length(supreme_loglin_Gibbs))
-print.four.treat.liberal = print.four.treat.conserv = rep(0, length(supreme_loglin_Gibbs))
-######
-treat.liberal = rep(0,9); treat.liberal[c(2,6,8,9)] = rep(1,4)
-treat.conserv = rep(0,9); treat.conserv[c(3,4,5,7)] = rep(1,4)
-######
-for(i in 1:nrow(boot.sample)){
-  print.all1.treat.liberal[i] = print.match.r(9, boot.sample[i,], treat = treat.liberal)  
-  print.all1.treat.conserv[i] = print.match.r(9, boot.sample[i,], treat = treat.conserv) 
-  
-  print.all0.treat.liberal[i] = print.match.r(0, boot.sample[i,], treat = treat.liberal)  
-  print.all0.treat.conserv[i] = print.match.r(0, boot.sample[i,], treat = treat.conserv) 
-  
-  print.five.treat.liberal[i] = print.match.r(5, boot.sample[i,], treat = treat.liberal)  
-  print.five.treat.conserv[i] = print.match.r(5, boot.sample[i,], treat = treat.conserv) 
-  
-  print.four.treat.liberal[i] = print.match.r(4, boot.sample[i,], treat = treat.liberal)  
-  print.four.treat.conserv[i] = print.match.r(4, boot.sample[i,], treat = treat.conserv) 
-}
-
-######
-tab = matrix(0, nrow = 4, ncol = 2)
-
-tab[1,] = c(paste(formatC(mean(print.all1.treat.liberal), 4, format="f") , "(", formatC(sd(print.all1.treat.liberal), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all1.treat.conserv), 4, format="f") , "(", formatC(sd(print.all1.treat.conserv), 4, format="f"), ")",sep=""))
-
-tab[2,] = c(paste(formatC(mean(print.all0.treat.liberal), 4, format="f") , "(", formatC(sd(print.all0.treat.liberal), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all0.treat.conserv), 4, format="f") , "(", formatC(sd(print.all0.treat.conserv), 4, format="f"), ")",sep=""))
-
-tab[3,] = c(paste(formatC(mean(print.five.treat.liberal), 4, format="f") , "(", formatC(sd(print.five.treat.liberal), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.five.treat.conserv), 4, format="f") , "(", formatC(sd(print.five.treat.conserv), 4, format="f"), ")",sep=""))
-
-tab[4,] = c(paste(formatC(mean(print.four.treat.liberal), 4, format="f") , "(", formatC(sd(print.four.treat.liberal), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.four.treat.conserv), 4, format="f") , "(", formatC(sd(print.four.treat.conserv), 4, format="f"), ")",sep=""))
-
-print(xtable(tab))
-
-########################################
-print.all1.treat.Rehnquist = print.all1.treat.Thomas = print.all1.treat.Stevens = print.all1.treat.Scalia = rep(0, length(supreme_loglin_Gibbs))
-print.all0.treat.Rehnquist = print.all0.treat.Thomas = print.all0.treat.Stevens = print.all0.treat.Scalia = rep(0, length(supreme_loglin_Gibbs))
-print.five.treat.Rehnquist = print.five.treat.Thomas = print.five.treat.Stevens = print.five.treat.Scalia = rep(0, length(supreme_loglin_Gibbs))
-print.four.treat.Rehnquist = print.four.treat.Thomas = print.four.treat.Stevens = print.four.treat.Scalia = rep(0, length(supreme_loglin_Gibbs))
-######
-for(i in 1:nrow(boot.sample)){
-  print.all1.treat.Rehnquist[i] = print.match.r(9, boot.sample[i,], c(1,rep(0,8)))  
-  print.all1.treat.Thomas[i] = print.match.r(9, boot.sample[i,], c(rep(0,6), 1, 0, 0)) 
-  print.all1.treat.Stevens[i] = print.match.r(9, boot.sample[i,], c(0, 1,rep(0,7))) 
-  print.all1.treat.Scalia[i] = print.match.r(9, boot.sample[i,], c(rep(0,3), 1, rep(0,5)))
-  
-  print.all0.treat.Rehnquist[i] = print.match.r(0, boot.sample[i,], c(1,rep(0,8)))  
-  print.all0.treat.Thomas[i] = print.match.r(0, boot.sample[i,], c(rep(0,6), 1, 0, 0)) 
-  print.all0.treat.Stevens[i] = print.match.r(0, boot.sample[i,],  c(0, 1,rep(0,7))) 
-  print.all0.treat.Scalia[i] = print.match.r(0, boot.sample[i,], c(rep(0,3), 1, rep(0,5)))
-  
-  print.five.treat.Rehnquist[i] = print.match.r(5, boot.sample[i,], c(1,rep(0,8)))  
-  print.five.treat.Thomas[i] = print.match.r(5, boot.sample[i,], c(rep(0,6), 1, 0, 0)) 
-  print.five.treat.Stevens[i] = print.match.r(5, boot.sample[i,],  c(0, 1,rep(0,7))) 
-  print.five.treat.Scalia[i] = print.match.r(5, boot.sample[i,], c(rep(0,3), 1, rep(0,5)))
-  
-  print.four.treat.Rehnquist[i] = print.match.r(4, boot.sample[i,], c(1,rep(0,8)))  
-  print.four.treat.Thomas[i] = print.match.r(4, boot.sample[i,], c(rep(0,6), 1, 0, 0)) 
-  print.four.treat.Stevens[i] = print.match.r(4, boot.sample[i,],  c(0, 1,rep(0,7))) 
-  print.four.treat.Scalia[i] = print.match.r(4, boot.sample[i,], c(rep(0,3), 1, rep(0,5)))
-}
-######
-tab = matrix(0, nrow = 4, ncol = 4)
-
-tab[1,] = c(paste(formatC(mean(print.all1.treat.Rehnquist), 4, format="f") , "(", formatC(sd(print.all1.treat.Rehnquist), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all1.treat.Thomas), 4, format="f") , "(", formatC(sd(print.all1.treat.Thomas), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all1.treat.Stevens), 4, format="f") , "(", formatC(sd(print.all1.treat.Stevens), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all1.treat.Scalia), 4, format="f") , "(", formatC(sd(print.all1.treat.Scalia), 4, format="f"), ")",sep=""))
-
-tab[2,] = c(paste(formatC(mean(print.all0.treat.Rehnquist), 4, format="f") , "(", formatC(sd(print.all0.treat.Rehnquist), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all0.treat.Thomas), 4, format="f") , "(", formatC(sd(print.all0.treat.Thomas), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all0.treat.Stevens), 4, format="f") , "(", formatC(sd(print.all0.treat.Stevens), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all0.treat.Scalia), 4, format="f") , "(", formatC(sd(print.all0.treat.Scalia), 4, format="f"), ")",sep=""))
-
-
-tab[3,] = c(paste(formatC(mean(print.five.treat.Rehnquist), 4, format="f") , "(", formatC(sd(print.five.treat.Rehnquist), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.five.treat.Thomas), 4, format="f") , "(", formatC(sd(print.five.treat.Thomas), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.five.treat.Stevens), 4, format="f") , "(", formatC(sd(print.five.treat.Stevens), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.five.treat.Scalia), 4, format="f") , "(", formatC(sd(print.five.treat.Scalia), 4, format="f"), ")",sep=""))
-
-
-tab[4,] = c(paste(formatC(mean(print.four.treat.Rehnquist), 4, format="f") , "(", formatC(sd(print.four.treat.Rehnquist), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.four.treat.Thomas), 4, format="f") , "(", formatC(sd(print.four.treat.Thomas), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.four.treat.Stevens), 4, format="f") , "(", formatC(sd(print.four.treat.Stevens), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.four.treat.Scalia), 4, format="f") , "(", formatC(sd(print.four.treat.Scalia), 4, format="f"), ")",sep=""))
-
-print(xtable(tab))
-
-
-##################################
-################################
-load("Data/supreme_loglin_DAG.RData")
-boot.sample = matrix(0, nrow = length(supreme_loglin_DAG), ncol = 38)
-for(i in 1:length(supreme_loglin_DAG)){
-  boot.sample[i,] = supreme_loglin_DAG[[i]]
-}
-
-######
-print.all1.treat.liberal = print.all1.treat.conserv = rep(0, length(supreme_loglin_DAG))
-print.all0.treat.liberal = print.all0.treat.conserv = rep(0, length(supreme_loglin_DAG))
-print.five.treat.liberal = print.five.treat.conserv = rep(0, length(supreme_loglin_DAG))
-print.four.treat.liberal = print.four.treat.conserv = rep(0, length(supreme_loglin_DAG))
-######
-treat.liberal = rep(0,9); treat.liberal[c(2,6,8,9)] = rep(1,4)
-treat.conserv = rep(0,9); treat.conserv[c(3,4,5,7)] = rep(1,4)
-######
-for(i in 1:nrow(boot.sample)){
-  print.all1.treat.liberal[i] = print.match.r(9, boot.sample[i,], treat = treat.liberal)  
-  print.all1.treat.conserv[i] = print.match.r(9, boot.sample[i,], treat = treat.conserv) 
-  
-  print.all0.treat.liberal[i] = print.match.r(0, boot.sample[i,], treat = treat.liberal)  
-  print.all0.treat.conserv[i] = print.match.r(0, boot.sample[i,], treat = treat.conserv) 
-  
-  print.five.treat.liberal[i] = print.match.r(5, boot.sample[i,], treat = treat.liberal)  
-  print.five.treat.conserv[i] = print.match.r(5, boot.sample[i,], treat = treat.conserv) 
-  
-  print.four.treat.liberal[i] = print.match.r(4, boot.sample[i,], treat = treat.liberal)  
-  print.four.treat.conserv[i] = print.match.r(4, boot.sample[i,], treat = treat.conserv) 
-}
-
-######
-tab = matrix(0, nrow = 4, ncol = 2)
-
-tab[1,] = c(paste(formatC(mean(print.all1.treat.liberal), 4, format="f") , "(", formatC(sd(print.all1.treat.liberal), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all1.treat.conserv), 4, format="f") , "(", formatC(sd(print.all1.treat.conserv), 4, format="f"), ")",sep=""))
-
-tab[2,] = c(paste(formatC(mean(print.all0.treat.liberal), 4, format="f") , "(", formatC(sd(print.all0.treat.liberal), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all0.treat.conserv), 4, format="f") , "(", formatC(sd(print.all0.treat.conserv), 4, format="f"), ")",sep=""))
-
-tab[3,] = c(paste(formatC(mean(print.five.treat.liberal), 4, format="f") , "(", formatC(sd(print.five.treat.liberal), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.five.treat.conserv), 4, format="f") , "(", formatC(sd(print.five.treat.conserv), 4, format="f"), ")",sep=""))
-
-tab[4,] = c(paste(formatC(mean(print.four.treat.liberal), 4, format="f") , "(", formatC(sd(print.four.treat.liberal), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.four.treat.conserv), 4, format="f") , "(", formatC(sd(print.four.treat.conserv), 4, format="f"), ")",sep=""))
-
-print(xtable(tab))
-
-########################################
-print.all1.treat.Rehnquist = print.all1.treat.Thomas = print.all1.treat.Stevens = print.all1.treat.Scalia = rep(0, length(supreme_loglin_DAG))
-print.all0.treat.Rehnquist = print.all0.treat.Thomas = print.all0.treat.Stevens = print.all0.treat.Scalia = rep(0, length(supreme_loglin_DAG))
-print.five.treat.Rehnquist = print.five.treat.Thomas = print.five.treat.Stevens = print.five.treat.Scalia = rep(0, length(supreme_loglin_DAG))
-print.four.treat.Rehnquist = print.four.treat.Thomas = print.four.treat.Stevens = print.four.treat.Scalia = rep(0, length(supreme_loglin_DAG))
-######
-for(i in 1:nrow(boot.sample)){
-  print.all1.treat.Rehnquist[i] = print.match.r(9, boot.sample[i,], c(1,rep(0,8)))  
-  print.all1.treat.Thomas[i] = print.match.r(9, boot.sample[i,], c(rep(0,6), 1, 0, 0)) 
-  print.all1.treat.Stevens[i] = print.match.r(9, boot.sample[i,], c(0, 1,rep(0,7))) 
-  print.all1.treat.Scalia[i] = print.match.r(9, boot.sample[i,], c(rep(0,3), 1, rep(0,5)))
-  
-  print.all0.treat.Rehnquist[i] = print.match.r(0, boot.sample[i,], c(1,rep(0,8)))  
-  print.all0.treat.Thomas[i] = print.match.r(0, boot.sample[i,], c(rep(0,6), 1, 0, 0)) 
-  print.all0.treat.Stevens[i] = print.match.r(0, boot.sample[i,],  c(0, 1,rep(0,7))) 
-  print.all0.treat.Scalia[i] = print.match.r(0, boot.sample[i,], c(rep(0,3), 1, rep(0,5)))
-  
-  print.five.treat.Rehnquist[i] = print.match.r(5, boot.sample[i,], c(1,rep(0,8)))  
-  print.five.treat.Thomas[i] = print.match.r(5, boot.sample[i,], c(rep(0,6), 1, 0, 0)) 
-  print.five.treat.Stevens[i] = print.match.r(5, boot.sample[i,],  c(0, 1,rep(0,7))) 
-  print.five.treat.Scalia[i] = print.match.r(5, boot.sample[i,], c(rep(0,3), 1, rep(0,5)))
-  
-  print.four.treat.Rehnquist[i] = print.match.r(4, boot.sample[i,], c(1,rep(0,8)))  
-  print.four.treat.Thomas[i] = print.match.r(4, boot.sample[i,], c(rep(0,6), 1, 0, 0)) 
-  print.four.treat.Stevens[i] = print.match.r(4, boot.sample[i,],  c(0, 1,rep(0,7))) 
-  print.four.treat.Scalia[i] = print.match.r(4, boot.sample[i,], c(rep(0,3), 1, rep(0,5)))
-}
-######
-tab = matrix(0, nrow = 4, ncol = 4)
-
-tab[1,] = c(paste(formatC(mean(print.all1.treat.Rehnquist), 4, format="f") , "(", formatC(sd(print.all1.treat.Rehnquist), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all1.treat.Thomas), 4, format="f") , "(", formatC(sd(print.all1.treat.Thomas), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all1.treat.Stevens), 4, format="f") , "(", formatC(sd(print.all1.treat.Stevens), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all1.treat.Scalia), 4, format="f") , "(", formatC(sd(print.all1.treat.Scalia), 4, format="f"), ")",sep=""))
-
-tab[2,] = c(paste(formatC(mean(print.all0.treat.Rehnquist), 4, format="f") , "(", formatC(sd(print.all0.treat.Rehnquist), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all0.treat.Thomas), 4, format="f") , "(", formatC(sd(print.all0.treat.Thomas), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all0.treat.Stevens), 4, format="f") , "(", formatC(sd(print.all0.treat.Stevens), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.all0.treat.Scalia), 4, format="f") , "(", formatC(sd(print.all0.treat.Scalia), 4, format="f"), ")",sep=""))
-
-
-tab[3,] = c(paste(formatC(mean(print.five.treat.Rehnquist), 4, format="f") , "(", formatC(sd(print.five.treat.Rehnquist), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.five.treat.Thomas), 4, format="f") , "(", formatC(sd(print.five.treat.Thomas), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.five.treat.Stevens), 4, format="f") , "(", formatC(sd(print.five.treat.Stevens), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.five.treat.Scalia), 4, format="f") , "(", formatC(sd(print.five.treat.Scalia), 4, format="f"), ")",sep=""))
-
-
-tab[4,] = c(paste(formatC(mean(print.four.treat.Rehnquist), 4, format="f") , "(", formatC(sd(print.four.treat.Rehnquist), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.four.treat.Thomas), 4, format="f") , "(", formatC(sd(print.four.treat.Thomas), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.four.treat.Stevens), 4, format="f") , "(", formatC(sd(print.four.treat.Stevens), 4, format="f"), ")",sep=""),
-            paste(formatC(mean(print.four.treat.Scalia), 4, format="f") , "(", formatC(sd(print.four.treat.Scalia), 4, format="f"), ")",sep=""))
-
-print(xtable(tab))
